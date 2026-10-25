@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "B站直播播放器助手",
+  "version": "1.0.3",
+  "description": "尝试解决海外观看Bilibili直播时“当前直播间暂时无法显示”的问题。支持自动与手动切换官方备用播放器、恢复原播放器和官方画质菜单。",
+  "minimum_chrome_version": "111",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://live.bilibili.com/*",
+    "https://api.live.bilibili.com/*",
+    "https://www.bilibili.com/blackboard/live/live-activity-player.html*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_title": "B站直播播放器助手",
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" }
+  },
+  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "content_scripts": [
+    {
+      "matches": ["https://live.bilibili.com/*"],
+      "js": ["page-media-bridge.js"],
+      "all_frames": true,
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://live.bilibili.com/*", "https://www.bilibili.com/blackboard/live/live-activity-player.html*"],
+      "js": ["core.js", "content.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ]
+}

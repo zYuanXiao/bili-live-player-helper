@@ -1,0 +1,10 @@
+{
+  "name": "bili-live-player-helper",
+  "version": "1.0.3",
+  "private": true,
+  "description": "尝试解决海外观看Bilibili直播时当前直播间暂时无法显示的问题",
+  "scripts": {
+    "check": "node scripts/check.cjs",
+    "package": "python scripts/package.py"
+  }
+}

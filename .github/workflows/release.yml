@@ -1,0 +1,73 @@
+name: Publish release
+
+"on":
+  push:
+    branches: [main]
+    paths:
+      - extension/**
+      - scripts/**
+      - package.json
+      - README.md
+      - .github/workflows/release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out the requested commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --no-checkout "https://github.com/${GITHUB_REPOSITORY}.git" source
+          git -C source checkout --detach "$GITHUB_SHA"
+
+      - name: Check and package runtime files
+        working-directory: source
+        run: |
+          node scripts/check.cjs
+          python3 scripts/package.py
+
+      - name: Publish ZIP and checksum
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(python3 -c 'import json; print(json.load(open("extension/manifest.json"))["version"])')"
+          tag="v${version}"
+          archive="dist/bili-live-player-helper-v${version}.zip"
+          cat > dist/release-notes.md <<'NOTES'
+          用于尝试解决海外访问部分B站直播间时出现“非常抱歉，当前直播间暂时无法显示”的问题。
+
+          下载 Assets 中的 bili-live-player-helper-v版本号.zip，全部解压后，在 Chrome / Edge 的扩展管理页开启开发者模式，加载直接包含 manifest.json 的文件夹，再刷新直播间。
+
+          支持自动切换、手动切换、恢复原播放器及官方画质/线路菜单。详细步骤见安装包内的“安装说明.txt”和仓库中文 README。
+
+          安装无需 Node.js、Python、代理或额外服务器。房间只有原画时不会新增低码率档位；备用入口的可用性取决于B站当前策略。
+          NOTES
+          if gh release view "$tag" --json isDraft,targetCommitish > dist/existing-release.json; then
+            draft="$(python3 -c 'import json; print(json.load(open("dist/existing-release.json"))["isDraft"])')"
+            if [ "$draft" = "False" ]; then
+              echo "Release ${tag} is already published; leaving it unchanged."
+              exit 0
+            fi
+            target="$(python3 -c 'import json; print(json.load(open("dist/existing-release.json"))["targetCommitish"])')"
+            if [ "$target" != "$GITHUB_SHA" ]; then
+              echo "An existing draft points to another commit; use a new version."
+              exit 1
+            fi
+          else
+            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "B站直播海外观看助手 ${tag}" --notes-file dist/release-notes.md
+          fi
+          gh release upload "$tag" "$archive" dist/SHA256SUMS.txt --clobber
+          gh release edit "$tag" --draft=false --latest

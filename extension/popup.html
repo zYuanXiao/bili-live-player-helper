@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>B站直播播放器助手</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header><img src="icons/48.png" width="36" height="36" alt=""><div><h1>直播播放器助手</h1><p>留在直播间，换个入口看</p></div><span class="version" id="version">1.0.3</span></header>
+  <main>
+    <section class="room-card" aria-label="当前直播间">
+      <div class="eyebrow"><span id="dot" class="dot"></span><span id="mode">检查当前页面</span></div>
+      <h2 id="room">正在连接…</h2>
+      <p id="note" role="status" aria-live="polite">正在读取播放器状态</p>
+      <p id="resolution" hidden></p>
+    </section>
+    <div class="switch-row"><div><label for="auto">受限时自动切换</label><p>正常播放时保留原播放器</p></div><input type="checkbox" role="switch" id="auto" checked></div>
+    <button id="switch" class="primary" disabled>切换到备用播放器</button>
+    <div class="secondary-row"><button id="reload" disabled>重新载入</button><button id="independent" disabled>独立打开 ↗</button></div>
+    <button id="refresh" class="refresh" hidden>刷新当前页面以启用插件</button>
+    <p class="hint">画质、线路和全屏使用视频内的官方菜单。只有原画的房间，菜单也只会提供原画。</p>
+    <details id="diagnostics"><summary>播放诊断</summary><pre id="diagnostics-text">尚未取得视频数据</pre></details>
+  </main>
+  <footer><span>本机设置 · 官方播放器</span><span id="suppressed"></span></footer>
+  <script src="core.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
